@@ -1,3 +1,10 @@
 # Private Spotify API data
 backend/.env
 backend/app/services/.cache
+
+# Other
+backend/venv/
+frontend/node_modules/
+backend/app/__pycache__/
+*.pyc
+data/raw
