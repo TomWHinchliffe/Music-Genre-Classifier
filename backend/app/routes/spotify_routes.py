@@ -12,8 +12,7 @@ router = APIRouter()
 
 auth_manager = SpotifyClientCredentials(
     client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-    client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-    redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI")
+    client_secret=os.getenv("SPOTIPY_CLIENT_SECRET")
 )
 
 sp = spotipy.Spotify(auth_manager=auth_manager)
@@ -22,7 +21,7 @@ sp = spotipy.Spotify(auth_manager=auth_manager)
 @router.get("/search")
 def search_song(query: str = Query(..., description="The name of the song to search")):
     try:
-        results = sp.search(q=query, type="track", limit=5)
+        results = sp.search(q=query, type="track", limit=10)
 
     except SpotifyException as e:
         if e.http_status == 429:
@@ -32,8 +31,6 @@ def search_song(query: str = Query(..., description="The name of the song to sea
             results = sp.search(q=query, type="track", limit=5)
         else:
             raise e
-    
-    print(results)  # Debug print
     
     tracks = []
     for item in results["tracks"]["items"]:
