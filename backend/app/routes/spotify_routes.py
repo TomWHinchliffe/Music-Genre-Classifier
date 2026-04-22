@@ -44,6 +44,7 @@ def search_song(query: str = Query(..., description="The name of the song to sea
                 else None
             ),
             "spotify_url": item.get("external_urls", {}).get("spotify"),
+            "release_year": item["album"]["release_date"][:4] if item.get("album") else None,
         }
         tracks.append(track_info)
     

@@ -38,27 +38,53 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Search for music</h1>
+      <div className="min-h-screen bg- text-white p-6">
+        <h1 className="text-2x1 font-bold mb-4">Search for music</h1>
 
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search for a song, album, or artist..."
-      />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search for a song, album, or artist..."
+          className="w-full p-3 rounded-lg bg-gray-800 text-white outline-none focus:ring-1"
+        />
 
-      {loading && <p>Searching...</p>}
+        {loading && <p className="mt-3 text-gray-400">Searching...</p>}
 
-      <div style={{ marginTop: "20px" }}>
-        {searchResults.map((track, index) => (
-          <div key={index} style={{ marginBottom: "10px" }}>
-            <strong>{track.name}</strong> - {track.artist}
-            <div>{track.album}</div>
-            {track.image && (
-              <img src={track.image} width={100} alt="album cover"/>
-            )}
-          </div>
-        ))}
+        {/* Display search results */}
+        <div className="mt-6 space-y-2">
+          {searchResults.map((track, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between bg-gray-900 hover:bg-gray-800 p-3 rounded-lg transition"
+            >
+              {/* Left: Album cover and track info */}
+              <div className="flex items-center gap-4">
+                {track.image && (
+                  <img
+                    src={track.image}
+                    alt="album cover"
+                    className="w-14 h-14 object-cover rounded"
+                  />
+                )}
+
+                <div>
+                  <div className="text-white font-semibold">
+                    {track.name}
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    {track.artist}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Artist name and release year */}
+              <div className="text-gray-400 text-sm">
+                {track.album} - {track.release_year}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
