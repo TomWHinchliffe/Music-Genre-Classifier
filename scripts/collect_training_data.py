@@ -47,7 +47,8 @@ MAIN_GENRES = [
     "ambient",
     "soundtrack",
     "children",
-    "comedy"
+    "comedy",
+    "other"
 ]
 
 GENRE_MAP = {
@@ -197,3 +198,31 @@ GENRE_MAP = {
     "comedy": "comedy",
     "parody": "comedy"
 }
+
+SUBGENRE_KEYWORDS = list(GENRE_MAP.keys())
+
+# Collect data based on genre search
+sp.search(q="genre:shoegaze", type="artist")  # Do this for all genres in subgenres list
+artist["genres"]  # Then get the artist's genres
+sp.artist_top_tracks(artist_id)  # And top tracks
+sp.audio_features(track_ids)  # And audio features
+
+# Collect data based on broad track search
+sp.search(q="a", type="track")  # Could repeat for all letter of alphabet, or dictionary of common words
+
+# Helper function to enforce lowercase and remove extra space from genre text
+def normalise_text(g):
+    return g.lower().strip()
+
+# Multi-match scoring for genres
+def extract_subgenres(spotify_genres):
+    matches = []
+
+    for g in spotify_genres:
+        g = normalise_text(g)
+
+        for key in SUBGENRE_KEYWORDS:
+            if key in g:
+                matches.append(key)
+
+    return list(set(matches))
