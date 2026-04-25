@@ -1,5 +1,5 @@
 # Private Spotify API data
-backend/.env
+.env
 backend/app/services/.cache
 
 # Other

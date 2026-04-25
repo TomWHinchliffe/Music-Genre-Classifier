@@ -29,5 +29,171 @@ def safe_call(func, *args, **kwargs):
             else:
                 raise
 
-genres = sp.recommendation_genre_seeds()
-print(f"Available genres: {genres}")
+MAIN_GENRES = [
+    "rock",
+    "pop",
+    "electronic",
+    "hip-hop",
+    "jazz",
+    "blues",
+    "country",
+    "metal",
+    "folk",
+    "classical",
+    "r&b/soul",
+    "reggae",
+    "latin",
+    "world",
+    "ambient",
+    "soundtrack",
+    "children",
+    "comedy"
+]
+
+GENRE_MAP = {
+    # ROCK / ALTERNATIVE
+    "alternative rock": "rock",
+    "indie rock": "rock",
+    "shoegaze": "rock",
+    "grunge": "rock",
+    "punk": "rock",
+    "hardcore punk": "rock",
+    "post-punk": "rock",
+    "new wave": "rock",
+    "progressive rock": "rock",
+    "psychedelic rock": "rock",
+    "art rock": "rock",
+    "garage rock": "rock",
+    "surf rock": "rock",
+    "noise rock": "rock",
+
+    # POP
+    "pop": "pop",
+    "indie pop": "pop",
+    "dream pop": "pop",
+    "synthpop": "pop",
+    "electropop": "pop",
+    "dance pop": "pop",
+    "teen pop": "pop",
+    "chamber pop": "pop",
+    "art pop": "pop",
+    "k-pop": "pop",
+    "j-pop": "pop",
+
+    # ELECTRONIC
+    "house": "electronic",
+    "deep house": "electronic",
+    "tech house": "electronic",
+    "techno": "electronic",
+    "minimal techno": "electronic",
+    "trance": "electronic",
+    "progressive trance": "electronic",
+    "dubstep": "electronic",
+    "drum and bass": "electronic",
+    "jungle": "electronic",
+    "garage": "electronic",
+    "uk garage": "electronic",
+    "grime": "electronic",
+    "breakbeat": "electronic",
+    "idm": "electronic",
+    "glitch": "electronic",
+    "electro": "electronic",
+    "downtempo": "electronic",
+    "trip hop": "electronic",
+
+    # HIP-HOP
+    "hip hop": "hip-hop",
+    "rap": "hip-hop",
+    "trap": "hip-hop",
+    "boom bap": "hip-hop",
+    "lo-fi hip hop": "hip-hop",
+    "jazz rap": "hip-hop",
+    "gangsta rap": "hip-hop",
+    "conscious hip hop": "hip-hop",
+
+    # JAZZ
+    "bebop": "jazz",
+    "swing": "jazz",
+    "cool jazz": "jazz",
+    "smooth jazz": "jazz",
+    "free jazz": "jazz",
+    "fusion": "jazz",
+    "latin jazz": "jazz",
+
+    # BLUES
+    "delta blues": "blues",
+    "chicago blues": "blues",
+    "electric blues": "blues",
+    "blues rock": "blues",
+
+    # COUNTRY
+    "country": "country",
+    "alt-country": "country",
+    "country rock": "country",
+    "bluegrass": "country",
+    "americana": "country",
+
+    # METAL
+    "heavy metal": "metal",
+    "death metal": "metal",
+    "black metal": "metal",
+    "metalcore": "metal",
+    "doom metal": "metal",
+    "progressive metal": "metal",
+    "nu metal": "metal",
+
+    # FOLK
+    "folk": "folk",
+    "indie folk": "folk",
+    "folk rock": "folk",
+    "traditional folk": "folk",
+
+    # CLASSICAL
+    "baroque": "classical",
+    "romantic": "classical",
+    "modern classical": "classical",
+    "opera": "classical",
+    "symphony": "classical",
+
+    # R&B / SOUL
+    "r&b": "r&b/soul",
+    "soul": "r&b/soul",
+    "funk": "r&b/soul",
+    "neo soul": "r&b/soul",
+    "motown": "r&b/soul",
+
+    # REGGAE
+    "reggae": "reggae",
+    "dub": "reggae",
+    "dancehall": "reggae",
+    "ska": "reggae",
+
+    # LATIN
+    "reggaeton": "latin",
+    "salsa": "latin",
+    "bachata": "latin",
+    "latin pop": "latin",
+    "bossa nova": "latin",
+
+    # WORLD
+    "afrobeat": "world",
+    "highlife": "world",
+    "bhangra": "world",
+    "flamenco": "world",
+
+    # AMBIENT
+    "ambient": "ambient",
+    "dark ambient": "ambient",
+    "drone": "ambient",
+    "soundscape": "ambient",
+
+    # SOUNDTRACK / OTHER
+    "film score": "soundtrack",
+    "video game music": "soundtrack",
+
+    # CHILDREN / COMEDY
+    "lullabies": "children",
+    "sing-along": "children",
+    "comedy": "comedy",
+    "parody": "comedy"
+}
