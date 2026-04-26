@@ -16,19 +16,6 @@ sp = spotipy.Spotify(
 
 from spotipy.exceptions import SpotifyException
 
-# Helper function for safe API calls to handle rate limits
-def safe_call(func, *args, **kwargs):
-    while True:
-        try:
-            return func(*args, **kwargs)
-        except SpotifyException as e:
-            if e.http_status == 429:
-                retry_after = int(e.headers.get("Retry-After", 1))
-                print(f"Rate limited. Sleeping {retry_after}s...")
-                time.sleep(retry_after)
-            else:
-                raise
-
 MAIN_GENRES = [
     "rock",
     "pop",
@@ -199,10 +186,13 @@ GENRE_MAP = {
     "parody": "comedy"
 }
 
-SUBGENRE_KEYWORDS = list(GENRE_MAP.keys())
+SUBGENRE_KEYWORDS = sorted(
+    GENRE_MAP.keys(),
+    key=lambda x: -len(x)
+)
 
 # Collect data based on genre search
-sp.search(q="genre:shoegaze", type="artist")  # Do this for all genres in subgenres list
+sp.search(q="genre:shoegaze", type="artist")  # Do this for all genres in subgenres list (after matching)
 artist["genres"]  # Then get the artist's genres
 sp.artist_top_tracks(artist_id)  # And top tracks
 sp.audio_features(track_ids)  # And audio features
@@ -210,11 +200,46 @@ sp.audio_features(track_ids)  # And audio features
 # Collect data based on broad track search
 sp.search(q="a", type="track")  # Could repeat for all letter of alphabet, or dictionary of common words
 
-# Helper function to enforce lowercase and remove extra space from genre text
-def normalise_text(g):
-    return g.lower().strip()
+def process_track(track, artist_genres):
+    features = safe_call(sp.audio_features, [track["id"]])[0]
+    
+    if features is None:
+        return None
+    
+    subgenres, main_genres = process_genres(artist_genres)
+    
+    return {
+        # Track and artist info
+        "track_id": track["id"],
+        "name": track["name"],
+        "artist": track["artists"][0]["name"],
 
-# Multi-match scoring for genres
+        # Track audio features
+        "danceability": features["danceability"],
+        "energy": features["energy"],
+        "valence": features["valence"],
+        "tempo": features["tempo"],
+        "acousticness": features["acousticness"],
+        "instrumentalness": features["instrumentalness"],
+        "liveness": features["liveness"],
+        "speechiness": features["speechiness"],
+
+        # Labels
+        "subgenres": subgenres,
+        "main_genres": main_genres
+    }
+
+# Obtain respective subgenres and main genres from a list of Spotify genres
+def process_genres(spotify_genres):
+    subgenres = extract_subgenres(spotify_genres)
+    main_genres = map_to_main(subgenres)
+    
+    if not main_genres:
+        main_genres = ["other"]
+    
+    return subgenres, main_genres
+
+# Multi-match scoring for subgenres
 def extract_subgenres(spotify_genres):
     matches = []
 
@@ -226,3 +251,26 @@ def extract_subgenres(spotify_genres):
                 matches.append(key)
 
     return list(set(matches))
+
+# Returns a list of main genres, mapped from subgenres 
+def map_to_main(subgenres):
+    return list(set(GENRE_MAP[s] for s in subgenres if s in GENRE_MAP))
+
+# Helper function for safe API calls to handle rate limits
+def safe_call(func, *args, **kwargs):
+    while True:
+        try:
+            return func(*args, **kwargs)
+        except SpotifyException as e:
+            if e.http_status == 429:
+                retry_after = int(e.headers.get("Retry-After", 1))
+                print(f"Rate limited. Sleeping {retry_after}s...")
+                time.sleep(retry_after)
+            else:
+                raise
+
+# Helper function to enforce lowercase and remove extra space from genre text
+def normalise_text(g):
+    return g.lower().strip()
+
+# Dataset collection loop
