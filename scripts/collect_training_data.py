@@ -191,14 +191,14 @@ SUBGENRE_KEYWORDS = sorted(
     key=lambda x: -len(x)
 )
 
-# Collect data based on genre search
-sp.search(q="genre:shoegaze", type="artist")  # Do this for all genres in subgenres list (after matching)
-artist["genres"]  # Then get the artist's genres
-sp.artist_top_tracks(artist_id)  # And top tracks
-sp.audio_features(track_ids)  # And audio features
+# Idea: Collect data based on genre search
+# sp.search(q="genre:shoegaze", type="artist")  # Do this for all genres in subgenres list (after matching)
+# artist["genres"]  # Then get the artist's genres
+# sp.artist_top_tracks(artist_id)  # And top tracks
+# sp.audio_features(track_ids)  # And audio features
 
-# Collect data based on broad track search
-sp.search(q="a", type="track")  # Could repeat for all letter of alphabet, or dictionary of common words
+# Idea: Collect data based on broad track search
+# sp.search(q="a", type="track")  # Could repeat for all letter of alphabet, or dictionary of common words
 
 def process_track(track, artist_genres):
     features = safe_call(sp.audio_features, [track["id"]])[0]
@@ -256,6 +256,10 @@ def extract_subgenres(spotify_genres):
 def map_to_main(subgenres):
     return list(set(GENRE_MAP[s] for s in subgenres if s in GENRE_MAP))
 
+# Helper function to enforce lowercase and remove extra space from genre text
+def normalise_text(g):
+    return g.lower().strip()
+
 # Helper function for safe API calls to handle rate limits
 def safe_call(func, *args, **kwargs):
     while True:
@@ -269,8 +273,64 @@ def safe_call(func, *args, **kwargs):
             else:
                 raise
 
-# Helper function to enforce lowercase and remove extra space from genre text
-def normalise_text(g):
-    return g.lower().strip()
+# Dataset collection loop and saving
+def collect_training_data():
+    data = []
+    seen_tracks = set()
 
-# Dataset collection loop
+    TARGET_DATASET_SIZE = 10000
+
+    # Collect artist genre data
+    for subgenre in list(GENRE_MAP.keys()):
+        print(f"Fetching genre seed: {subgenre}")
+        
+        # Fetch artist genre search results
+        results = safe_call(
+            sp.search,
+            q=f"genre:{subgenre}",
+            type="artist",
+            limit=10
+        )
+        
+        for artist in results["artists"]["items"]:
+            artist_id = artist["id"]
+            print(artist["genres"])
+            artist_genres = artist["genres"]
+            
+            if not artist_genres:
+                continue
+            
+            top_tracks = safe_call(sp.artist_top_tracks, artist_id)["tracks"]
+            
+            for track in top_tracks:
+                # Skip over seen tracks
+                if track["id"] in seen_tracks:
+                    continue
+                
+                # Process row data with track info, artist info, and audio features
+                track_row = process_track(track, artist_genres)
+                
+                if track_row:
+                    data.append(track_row)
+                    seen_tracks.add(track["id"])
+                
+            time.sleep(0.2)
+        
+        # Stop collecting data when desired dataset size has been reached        
+        if len(data) >= TARGET_DATASET_SIZE:
+            break
+
+    # Save dataset
+    df = pd.DataFrame(data)
+
+    # Remove empty rows
+    df = df[df["main_genres"].map(len) > 0]
+
+    # Save dataset to CSV file
+    df.to_csv("data/training_dataset.csv", index=False)
+
+    print(f"Collected {len(df)} tracks")
+
+# Main function to collect and save the genre training dataset
+if __name__ == "__main__":
+    collect_training_data()
