@@ -206,6 +206,9 @@ def process_track(track, artist_genres):
     if features is None:
         return None
     
+    # debug print
+    print(features["danceability"])
+    
     subgenres, main_genres = process_genres(artist_genres)
     
     return {
@@ -294,7 +297,6 @@ def collect_training_data():
         
         for artist in results["artists"]["items"]:
             artist_id = artist["id"]
-            print(artist["genres"])
             artist_genres = artist["genres"]
             
             if not artist_genres:
